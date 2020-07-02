@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <link rel="stylesheet" href="style.css">
+    <title>Rapchynskyi</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <!-- import the webpage's stylesheet -->
+    <link rel="stylesheet" href="/style.css">
+    
+    <!-- import the webpage's javascript file -->
+    <script src="/script.js" defer></script>
+     <script
+      id="MathJax-script"
+      async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+    ></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  </head>  
+  
+  <body>
+<h1>Рапчинский Александр</h1>
+<h2>Задание 2.2</h2>
+    <canvas id="mypixcanvas" width=600 height=400 style='border: solid 1px green;'></canvas>
+<div class="form-group">
+      <label for="inp_1">Введите формулу (триг. функции писать через Math. ):</label>
+      <input type="text" class="form-control" id="inp_1" value="x">
+      <label for="inp_2">Введите xmin:</label>
+      <input type="text" class="form-control" id="inp_2" value="-10">
+      <label for="inp_3">Введите xmax:</label>
+      <input type="text" class="form-control" id="inp_3" value="10">
+      <label for="inp_4">Введите ymin:</label>
+      <input type="text" class="form-control" id="inp_4" value="-10">
+      <label for="inp_5">Введите ymax:</label>
+      <input type="text" class="form-control" id="inp_5" value="10">
+      <label for="inp_6">Введите W:</label>
+      <input type="text" class="form-control" id="inp_6" value="500">
+      <label for="inp_7">Введите H:</label>
+      <input type="text" class="form-control" id="inp_7" value="500">
+      
+  
+</div>
+<button onclick="func()"  class="btn btn-primary" >Нарисовать</button>
+      <script>
+      
+      
+
+let w;
+let h;let xmin;let xmax;let ymin;let ymax; let v;
+class Graphics1d{
+    autodraw(){
+        xmin=-10;
+        xmax=10; 
+        ymin=-10;
+        ymax=10;
+        funct="";
+        W = 1000;
+        H = 1000;
+    }
+    constructor(xmin, xmax, ymin, ymax, W, H, funct){
+        this.xmin=xmin;
+        this.xmax=xmax;
+        this.ymin=ymin;
+        this.ymax=ymax;
+        this.W=W;
+        this.H=H;
+        this.funct=funct;
+    }
+   
+   f(x,y){
+       return  eval(this.funct);
+       
+   }
+   draw(){ 
+     
+       const mypixcanvas = document.getElementById('mypixcanvas');
+    var pixctx=mypixcanvas.getContext('2d');
+    mypixcanvas.width= this.W;
+    mypixcanvas.height= this.H;
+    let  imgData = pixctx.getImageData(0,0,this.W,this.H);
+    let  RGBA =  imgData.data;
+    
+             let X = 0; //Screen X 
+             let Y = 0; //Screen Y 
+              for(let p=0; p<this.W*this.H*4; p+=4)  // for all pixels of canvas 
+                { 
+                
+                  // computing math x and math y from screen X and screen Y
+                  let x =  (X*Math.abs(this.xmax-xmin))/this.W; 
+                  x-= (this.W*Math.abs(this.xmax-xmin))/(2*this.W);
+                  let y =  -(Y*Math.abs(this.ymax-ymin))/this.H; 
+                  y+= (this.H*Math.abs(this.ymax-ymin))/(2*this.H);
+                      
+                           
+                           // compute axes
+                           const tx=Math.abs(this.xmax-xmin)/(256);   
+                           const ty=Math.abs(this.xmax-xmin)/(256);   
+                           let axis_x =  Math.abs(y) < tx;
+                           let axis_y =  Math.abs(x) < ty;
+                             //combine them
+                            let axes =  (axis_x+axis_y)*64;
+                  
+                           // compute grids
+                           let grid_vertical   =  Math.abs(x%1) < tx
+                           let grid_horizontal =  Math.abs(y%1) < ty
+                             //combine them 
+                             let grid = (grid_vertical+grid_horizontal)*64 
+                             
+                              // combine them all
+                              let axes_and_grid = axes+grid
+                           
+                            // computing  picture functions 
+                         let F= this.f(x,y); // F=-Infinity;
+                                          // F = Math.max(F, A);
+                  
+                            // F *= 1024*1024;  // F - intensity of picture pixels (variant1)
+                             F = 1024/F;  // F - intensity of picture pixels (variant2)
+                           
+               
+                               if(F>0) RGBA[p+0]=F;               // red if F>0
+                                       RGBA[p+1]=axes_and_grid;   // green axes_and_grid
+                               if(F<0) RGBA[p+2]=-F;              // blue if F<0
+                                       RGBA[p+3]=255;             // opacity
+                  
+                  // computing new screen X and screen Y
+                     X++; 
+                      if(X==this.W)
+                        { 
+                         X=0; //Screen X 
+                         Y++; //Screen Y 
+                        }  
+                }  
+                pixctx.putImageData(imgData, 0, 0); 
+   }
+}
+
+function func(){
+   v =document.getElementById('inp_1').value;
+   w = parseInt(document.getElementById('inp_6').value);
+   h = parseInt(document.getElementById('inp_7').value);
+
+   xmin = parseInt(document.getElementById('inp_2').value) + w/2;
+   xmax = parseInt(document.getElementById('inp_3').value) + w/2;
+   ymin = parseInt(document.getElementById('inp_4').value) + h/2;
+   ymax = parseInt(document.getElementById('inp_5').value) + h/2;
+  
+           
+               
+                
+                let obj = new Graphics1d(xmin,xmax,ymin,ymax,w,h,v);
+                obj.draw();
+             
+}
+                   
+      </script>
+    
+    
+    <div class="glitchButton" style="position:fixed;top:20px;right:20px;"></div>
+    <script src="https://button.glitch.me/button.js"></script>
+  </body>
+</html>
